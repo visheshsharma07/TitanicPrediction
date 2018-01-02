@@ -4,7 +4,7 @@
 
 #library(ggplot2) # Data visualization
 #library(readr) # CSV file I/O, e.g. the read_csv function
-
+library(rpart)
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
@@ -28,7 +28,7 @@ test <- read.csv("test.csv",stringsAsFactors=FALSE)
 # 1 signifies row
 # 2 signifies column
 
-#summary(train$Age)
+summary(train$Age)
 #test$Survived <- 0
 #test$Survived[test$Sex == 'female'] <- 1
 train$Child <- 0

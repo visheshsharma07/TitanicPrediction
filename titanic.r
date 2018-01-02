@@ -28,7 +28,7 @@ test <- read.csv("test.csv",stringsAsFactors=FALSE)
 # 1 signifies row
 # 2 signifies column
 
-#summary(train$Age)
+summary(train$Age)
 #test$Survived <- 0
 #test$Survived[test$Sex == 'female'] <- 1
 train$Child <- 0
