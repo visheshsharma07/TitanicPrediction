@@ -53,6 +53,8 @@ test <- read.csv("test.csv",stringsAsFactors=FALSE)
 
 # Decision Trees
 fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,data = train, method = "class")
+#fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,data = train, method = "class",
+#             control = rpart.control(minsplit = 2,cp=0))# causes overfitting
 fancyRpartPlot(fit)
 Prediction <- predict(fit, test, type="class")
 submit <- data.frame(PassengerId <- test$PassengerId, Survived <- Prediction)
