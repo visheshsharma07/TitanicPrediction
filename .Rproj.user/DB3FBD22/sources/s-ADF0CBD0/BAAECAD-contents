@@ -20,7 +20,7 @@ test <- read.csv("test.csv",stringsAsFactors=FALSE)
 #prop.table(table(train$Survived)) #shows proportion of the above
 #test$Survived <- rep(0,418) # creates survived column if not created else overwrites value
 #table(test$Survived)
-#table(train$Sex) 
+table(train$Sex) 
 #summary(train$Sex) # basic description of the variable
 #table(train$Sex, train$Survived) # each value is that particular value divided by total population
 #prop.table(table(train$Sex, train$Survived),1) #each value is the particular value divided by total population of that class
