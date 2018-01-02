@@ -5,6 +5,9 @@
 #library(ggplot2) # Data visualization
 #library(readr) # CSV file I/O, e.g. the read_csv function
 library(rpart)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
@@ -20,7 +23,7 @@ test <- read.csv("test.csv",stringsAsFactors=FALSE)
 #prop.table(table(train$Survived)) #shows proportion of the above
 #test$Survived <- rep(0,418) # creates survived column if not created else overwrites value
 #table(test$Survived)
-table(train$Sex) 
+#table(train$Sex) 
 #summary(train$Sex) # basic description of the variable
 #table(train$Sex, train$Survived) # each value is that particular value divided by total population
 #prop.table(table(train$Sex, train$Survived),1) #each value is the particular value divided by total population of that class
@@ -28,25 +31,30 @@ table(train$Sex)
 # 1 signifies row
 # 2 signifies column
 
-summary(train$Age)
+#summary(train$Age)
 #test$Survived <- 0
 #test$Survived[test$Sex == 'female'] <- 1
-train$Child <- 0
-train$Child[train$Age < 18] <- 1
-train$Fare2 <- '30+'
-train$Fare2[train$Fare >= 20 & train$Fare < 30] <- '20-30'
-train$Fare2[train$Fare >= 10 & train$Fare < 20] <- '10-20'
-train$Fare2[train$Fare < 10] <- '<10'
+#train$Child <- 0
+#train$Child[train$Age < 18] <- 1
+#train$Fare2 <- '30+'
+#train$Fare2[train$Fare >= 20 & train$Fare < 30] <- '20-30'
+#train$Fare2[train$Fare >= 10 & train$Fare < 20] <- '10-20'
+#train$Fare2[train$Fare < 10] <- '<10'
 
-aggregate(Survived ~ Child + Sex, data=train, FUN=sum) # total survived IMPORTANT
-aggregate(Survived ~ Child + Sex, data=train, FUN=length) # total population
-aggregate(Survived ~ Child + Sex, data=train, FUN=function(x){sum(x)/length(x)})
-aggregate(Survived ~ Fare2 + Sex + Pclass, data=train, FUN=function(x){sum(x)/length(x)})
+#aggregate(Survived ~ Child + Sex, data=train, FUN=sum) # total survived IMPORTANT
+#aggregate(Survived ~ Child + Sex, data=train, FUN=length) # total population
+#aggregate(Survived ~ Child + Sex, data=train, FUN=function(x){sum(x)/length(x)})
+#aggregate(Survived ~ Fare2 + Sex + Pclass, data=train, FUN=function(x){sum(x)/length(x)})
 
-test$Survived <- 0
-test$Survived[test$Sex == 'female'] <- 1
-test$Survived[test$Sex == 'female' & test$Pclass == 3 & test$Fare >= 20] <- 0
+#test$Survived <- 0
+#test$Survived[test$Sex == 'female'] <- 1
+#test$Survived[test$Sex == 'female' & test$Pclass == 3 & test$Fare >= 20] <- 0
 #head(test)
-submit <- data.frame(PassengerId <- test$PassengerId, Survived <- test$Survived)
+
+# Decision Trees
+fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,data = train, method = "class")
+fancyRpartPlot(fit)
+Prediction <- predict(fit, test, type="class")
+submit <- data.frame(PassengerId <- test$PassengerId, Survived <- Prediction)
 names(submit) <- c("PassengerId","Survived")
-write.csv(submit, "Submission.csv", row.names=FALSE)
+write.csv(submit, "DecisionTreeSubmission.csv", row.names=FALSE)
