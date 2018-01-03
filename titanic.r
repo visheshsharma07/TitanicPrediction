@@ -52,11 +52,26 @@ test <- read.csv("test.csv",stringsAsFactors=FALSE)
 #head(test)
 
 # Decision Trees
-fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,data = train, method = "class")
+#fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,data = train, method = "class")
 #fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked,data = train, method = "class",
 #             control = rpart.control(minsplit = 2,cp=0))# causes overfitting
-fancyRpartPlot(fit)
-Prediction <- predict(fit, test, type="class")
-submit <- data.frame(PassengerId <- test$PassengerId, Survived <- Prediction)
-names(submit) <- c("PassengerId","Survived")
-write.csv(submit, "DecisionTreeSubmission.csv", row.names=FALSE)
+#fancyRpartPlot(fit)
+#Prediction <- predict(fit, test, type="class")
+
+# Feature Engineering
+
+test$Survived <- NA
+combi <-rbind(train,test)
+#strings are automatically imported in R as factors
+combi$Name <- as.character(combi$Name) # converts factors to strings
+combi$Name[1]
+strsplit(combi$Name[1],split = '[,.]')[[1]] #splits the string that is either separated by comma or dot 
+strsplit(combi$Name[1],split = '[,.]')[[1]][2]
+# using sapply function we are running the above function over entire Name column of combi dataset
+combi$Title <- sapply(combi$Name, FUN=function(x){strsplit(x, split='[,.]')[[1]][2]})
+# remove beginning spaces from above
+combi$Title <- sub(' ','',combi$Title)
+table(combi$Title)
+#submit <- data.frame(PassengerId <- test$PassengerId, Survived <- Prediction)
+#names(submit) <- c("PassengerId","Survived")
+#write.csv(submit, "DecisionTreeSubmission.csv", row.names=FALSE)
