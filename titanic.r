@@ -8,6 +8,8 @@ library(rpart)
 library(rattle)
 library(rpart.plot)
 library(RColorBrewer)
+library(randomForest)
+library(party)
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
@@ -91,12 +93,42 @@ combi$FamilyId[combi$FamilyId %in% famId$Var1] <- 'Small'
 combi$FamilyId <- factor(combi$FamilyId)
 train <- combi[0:891,]
 test <- combi[892:1309,]
-#Decision trees are biased to favour factors with many levels
+# Decision trees are biased to favour factors with many levels
 # A variable with more distinct values will be prefered over others
 fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked + Title + FamilySize + FamilyId, data=train, method = "class")
-fancyRpartPlot(fit)
+#fancyRpartPlot(fit)
 Prediction <- predict(fit, test, type="class")
 
+# Random Forest predictions
+
+Agefit <- rpart(Age ~ Pclass + Sex + SibSp + Parch + Fare + Embarked + Title + FamilySize,data=combi[!is.na(combi$Age),], method="anova")
+combi$Age[is.na(combi$Age)] <- predict(Agefit, combi[is.na(combi$Age),])
+summary(combi$Embarked)
+which(combi$Embarked == "") # tells give row has a blank value
+#row number 62 and 830 are having blank values so we input 'S' as a value for it
+combi$Embarked[c(62,830)] <- 'S'
+combi$Embarked <- factor(combi$Embarked)
+which(is.na(combi$Fare))
+#1044 rows has a blank value for Fare variable
+combi$Fare[1044] <- median(combi$Fare, na.rm = TRUE)
+combi$FamilyID2 <- combi$FamilyId
+combi$FamilyID2 <- as.character(combi$FamilyID2)
+combi$FamilyID2[combi$FamilySize <= 3] <- 'Small'
+combi$FamilyID2 <- as.factor(combi$FamilyID2)
+combi$Sex <- as.factor(combi$Sex)
+train <- combi[0:891,]
+test <- combi[892:1309,]
+test$Survived <- as.factor(0)
+
+#fit <- randomForest(as.factor(Survived) ~ Pclass + Sex + Age + SibSp + Parch + Fare +Embarked + Title + FamilySize + FamilyID2,data=train, importance=TRUE, ntree=2000)
+set.seed(415)
+fit <- cforest(as.factor(Survived) ~ Pclass + Sex + Age + SibSp + Parch + Fare +
+                 Embarked + Title + FamilySize + FamilyID,
+               data = train, 
+               controls=cforest_unbiased(ntree=2000, mtry=3))
+#varImpPlot(fit)
+#Prediction <- predict(fit,test)
+Prediction <- predict(fit, test, OOB=TRUE, type = "response")
 submit <- data.frame(PassengerId <- test$PassengerId, Survived <- Prediction)
 names(submit) <- c("PassengerId","Survived")
-write.csv(submit, "FeatureEngineeredDecisionTreeSubmission.csv", row.names=FALSE)
+write.csv(submit, "RandomForestSubmission.csv", row.names=FALSE)
