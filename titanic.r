@@ -72,6 +72,31 @@ combi$Title <- sapply(combi$Name, FUN=function(x){strsplit(x, split='[,.]')[[1]]
 # remove beginning spaces from above
 combi$Title <- sub(' ','',combi$Title)
 table(combi$Title)
-#submit <- data.frame(PassengerId <- test$PassengerId, Survived <- Prediction)
-#names(submit) <- c("PassengerId","Survived")
-#write.csv(submit, "DecisionTreeSubmission.csv", row.names=FALSE)
+# combing redundant titles
+combi$Title[combi$Title %in% c('Mine','Mile')] <- 'Mile'
+combi$Title[combi$Title %in% c('Capt','Don','Major','Sir')] <- 'Sir'
+combi$Title[combi$Title %in% c('Dona','Lady','the Countess','Jonkheer')] <- 'Mile'
+# Change the type back to factor
+combi$Title <- factor(combi$Title)
+# getting family size
+combi$FamilySize <- combi$SibSp + combi$Parch + 1
+combi$Surname <- sapply(combi$Name, FUN=function(x){strsplit(x, split='[,.]')[[1]][1]})
+# create family id
+combi$FamilyId <- paste(as.character(combi$FamilySize),combi$Surname,sep="")
+combi$FamilyId[combi$FamilySize <= 2] <- 'Small'
+table(combi$FamilyId)
+famId <- data.frame(table(combi$FamilyId))
+famId <- famId[famId$Freq <= 2,]
+combi$FamilyId[combi$FamilyId %in% famId$Var1] <- 'Small'
+combi$FamilyId <- factor(combi$FamilyId)
+train <- combi[0:891,]
+test <- combi[892:1309,]
+#Decision trees are biased to favour factors with many levels
+# A variable with more distinct values will be prefered over others
+fit <- rpart(Survived ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked + Title + FamilySize + FamilyId, data=train, method = "class")
+fancyRpartPlot(fit)
+Prediction <- predict(fit, test, type="class")
+
+submit <- data.frame(PassengerId <- test$PassengerId, Survived <- Prediction)
+names(submit) <- c("PassengerId","Survived")
+write.csv(submit, "FeatureEngineeredDecisionTreeSubmission.csv", row.names=FALSE)
